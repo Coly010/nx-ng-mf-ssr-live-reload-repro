@@ -1,0 +1,182 @@
+{
+  "name": "ozon",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "projectType": "application",
+  "prefix": "app-ssr",
+  "sourceRoot": "packages/ozon/src",
+  "tags": [],
+  "targets": {
+    "build": {
+      "executor": "@nx/angular:webpack-browser",
+      "outputs": ["{options.outputPath}"],
+      "options": {
+        "outputPath": "dist/packages/ozon/browser",
+        "index": "packages/ozon/src/index.html",
+        "main": "packages/ozon/src/main.ts",
+        "polyfills": ["zone.js"],
+        "tsConfig": "packages/ozon/tsconfig.app.json",
+        "assets": ["packages/ozon/src/favicon.ico", "packages/ozon/src/assets"],
+        "styles": ["packages/ozon/src/styles.scss"],
+        "scripts": [],
+        "customWebpackConfig": {
+          "path": "packages/ozon/webpack.config.js"
+        }
+      },
+      "configurations": {
+        "production": {
+          "budgets": [
+            {
+              "type": "initial",
+              "maximumWarning": "500kb",
+              "maximumError": "1mb"
+            },
+            {
+              "type": "anyComponentStyle",
+              "maximumWarning": "2kb",
+              "maximumError": "4kb"
+            }
+          ],
+          "outputHashing": "all",
+          "customWebpackConfig": {
+            "path": "packages/ozon/webpack.prod.config.js"
+          }
+        },
+        "development": {
+          "buildOptimizer": false,
+          "optimization": false,
+          "vendorChunk": true,
+          "extractLicenses": false,
+          "sourceMap": true,
+          "namedChunks": true
+        }
+      },
+      "defaultConfiguration": "production"
+    },
+    "serve": {
+      "executor": "@nx/angular:webpack-dev-server",
+      "options": {
+        "port": 4202,
+        "publicHost": "http://localhost:4202"
+      },
+      "configurations": {
+        "production": {
+          "browserTarget": "ozon:build:production"
+        },
+        "development": {
+          "browserTarget": "ozon:build:development"
+        }
+      },
+      "defaultConfiguration": "development"
+    },
+    "extract-i18n": {
+      "executor": "@angular-devkit/build-angular:extract-i18n",
+      "options": {
+        "browserTarget": "ozon:build"
+      }
+    },
+    "lint": {
+      "executor": "@nx/linter:eslint",
+      "outputs": ["{options.outputFile}"],
+      "options": {
+        "lintFilePatterns": ["packages/ozon/**/*.ts", "packages/ozon/**/*.html"]
+      }
+    },
+    "test": {
+      "executor": "@nx/jest:jest",
+      "outputs": ["{workspaceRoot}/coverage/{projectRoot}"],
+      "options": {
+        "jestConfig": "packages/ozon/jest.config.ts",
+        "passWithNoTests": true
+      },
+      "configurations": {
+        "ci": {
+          "ci": true,
+          "codeCoverage": true
+        }
+      }
+    },
+    "serve-static": {
+      "executor": "@nx/web:file-server",
+      "defaultConfiguration": "development",
+      "options": {
+        "buildTarget": "ozon:build",
+        "port": 4202,
+        "watch": false
+      },
+      "configurations": {
+        "development": {
+          "buildTarget": "ozon:build:development"
+        },
+        "production": {
+          "buildTarget": "ozon:build:production"
+        }
+      }
+    },
+    "server": {
+      "dependsOn": ["build"],
+      "executor": "@nx/angular:webpack-server",
+      "options": {
+        "outputPath": "dist/packages/ozon/server",
+        "main": "packages/ozon/server.ts",
+        "tsConfig": "packages/ozon/tsconfig.server.json",
+        "customWebpackConfig": {
+          "path": "packages/ozon/webpack.server.config.js"
+        }
+      },
+      "configurations": {
+        "production": {
+          "outputHashing": "media"
+        },
+        "development": {
+          "buildOptimizer": false,
+          "optimization": false,
+          "sourceMap": true,
+          "extractLicenses": false,
+          "vendorChunk": true
+        }
+      },
+      "defaultConfiguration": "production"
+    },
+    "serve-ssr": {
+      "executor": "@nguniversal/builders:ssr-dev-server",
+      "configurations": {
+        "development": {
+          "browserTarget": "ozon:build:development",
+          "serverTarget": "ozon:server:development"
+        },
+        "production": {
+          "browserTarget": "ozon:build:production",
+          "serverTarget": "ozon:server:production"
+        }
+      },
+      "defaultConfiguration": "development",
+      "options": {
+        "port": 4202
+      }
+    },
+    "prerender": {
+      "executor": "@nguniversal/builders:prerender",
+      "options": {
+        "routes": ["/"]
+      },
+      "configurations": {
+        "development": {
+          "browserTarget": "ozon:build:development",
+          "serverTarget": "ozon:server:development"
+        },
+        "production": {
+          "browserTarget": "ozon:build:production",
+          "serverTarget": "ozon:server:production"
+        }
+      },
+      "defaultConfiguration": "production"
+    },
+    "static-server": {
+      "dependsOn": ["build", "server"],
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "PORT=4202 node dist/packages/ozon/server/main.js"
+      }
+    }
+  }
+}
